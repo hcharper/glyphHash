@@ -9,6 +9,20 @@ glyphHash is a production-ready Web3 compliance platform that creates tamper-pro
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)
 ![Next.js](https://img.shields.io/badge/Next.js-15-black)
 ![NestJS](https://img.shields.io/badge/NestJS-10-red)
+![License](https://img.shields.io/badge/License-MIT-green)
+![Status](https://img.shields.io/badge/Status-Beta-yellow)
+
+## ⚠️ Disclaimer
+
+**This software is in active development and not yet audited for production use.**
+
+- ✅ **Currently running on Hedera Testnet** - Do not use with sensitive production data
+- ⚠️ **Beta Software** - Features and APIs may change
+- 🔐 **Security Notice** - Encryption keys are managed by users; no warranty is provided
+- 📋 **Not SOC 2 Certified** - This tool assists with compliance but does not guarantee regulatory approval
+- ⚖️ **No Liability** - Use at your own risk; consult your legal/compliance team before deployment
+
+**For production use:** Deploy to mainnet, conduct security audit, and review with your compliance team.
 
 ## ✨ Features
 
@@ -442,17 +456,21 @@ Powered by Swagger/OpenAPI.
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) file
+MIT License - Copyright (c) 2025 glyphHash
+
+See [LICENSE](LICENSE) file for details.
+
+**Summary:** Free to use, modify, and distribute. Provided "as is" without warranty.
 
 ## 🙏 Acknowledgments
 
 - **Hedera Hashgraph**: For enterprise-grade DLT
 - **Clerk**: For authentication infrastructure
 - **NestJS & Next.js**: For robust frameworks
-- **shadcn/ui**: For beautiful UI components
-
-## 📞 Support
-
+- **shadcn/ui**: For beaut/](docs/) folder in this repository
+- **Issues**: [GitHub Issues](https://github.com/hcharper/glyphHash/issues)
+- **Email**: hello@glyphhash.com
+- **Website**: https://glyphhash.com (coming soon
 - **Documentation**: [docs.glyphhash.com](https://docs.glyphhash.com) (TODO)
 - **Discord**: [Join our community](https://discord.gg/glyphhash) (TODO)
 - **Email**: support@glyphhash.com (TODO)
@@ -464,7 +482,7 @@ MIT License - see [LICENSE](LICENSE) file
 - [x] Core HCS integration on testnet
 - [x] Multi-tenant infrastructure
 - [x] Client-side encryption
-- [x] Mirror Node worker
+- [x] Mirror Node w DID integration (verifiable credentials)
 - [x] Basic dashboard
 
 ### Phase 2 (Q1 2026)
