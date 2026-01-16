@@ -1,33 +1,35 @@
 {
-  "name": "glyphhash-monorepo",
-  "version": "1.0.0",
+  "name": "glyphhash",
+  "version": "0.1.0",
   "private": true,
-  "description": "glyphHash - Multi-tenant immutable compliance logging SaaS on Hedera network",
+  "description": "Blockchain-verified compliance auditing platform on Hedera",
   "workspaces": [
     "apps/*",
+    "services/*",
     "packages/*"
   ],
   "scripts": {
-    "dev": "turbo run dev --parallel",
+    "dev": "turbo run dev",
     "build": "turbo run build",
-    "lint": "turbo run lint",
     "test": "turbo run test",
+    "test:watch": "turbo run test:watch",
+    "test:coverage": "turbo run test:coverage",
+    "lint": "turbo run lint",
     "clean": "turbo run clean && rm -rf node_modules",
+    "db:migrate": "npm run db:migrate --workspace=@glyphhash/api",
+    "db:seed": "npm run db:seed --workspace=@glyphhash/api",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
-    "docker:logs": "docker-compose logs -f",
-    "setup": "npm install && npm run docker:up && sleep 5 && cd apps/api && npx prisma migrate dev && npx prisma generate",
-    "db:migrate": "cd apps/api && npx prisma migrate dev",
-    "db:studio": "cd apps/api && npx prisma studio"
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
     "prettier": "^3.1.0",
-    "turbo": "^1.11.0",
-    "typescript": "^5.3.3"
+    "turbo": "^2.0.0",
+    "typescript": "^5.3.0"
   },
   "engines": {
-    "node": ">=20.0.0",
-    "npm": ">=9.0.0"
-  }
+    "node": ">=20.0.0"
+  },
+  "packageManager": "npm@10.2.0"
 }

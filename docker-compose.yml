@@ -1,12 +1,13 @@
-version: '3.9'
+version: '3.8'
 
 services:
+  # PostgreSQL Database
   postgres:
     image: postgres:16-alpine
     container_name: glyphhash-postgres
     environment:
       POSTGRES_USER: glyphhash
-      POSTGRES_PASSWORD: glyphhash_pass
+      POSTGRES_PASSWORD: glyphhash
       POSTGRES_DB: glyphhash
     ports:
       - "5432:5432"
@@ -14,10 +15,11 @@ services:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U glyphhash"]
-      interval: 10s
+      interval: 5s
       timeout: 5s
       retries: 5
 
+  # Redis (for caching and pub/sub - future use)
   redis:
     image: redis:7-alpine
     container_name: glyphhash-redis
@@ -27,96 +29,23 @@ services:
       - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
+      interval: 5s
       timeout: 5s
       retries: 5
 
+  # LocalStack for S3 simulation (development only)
   localstack:
     image: localstack/localstack:latest
     container_name: glyphhash-localstack
     ports:
       - "4566:4566"
-      - "4510-4559:4510-4559"
     environment:
-      - SERVICES=s3
-      - DEBUG=1
-      - DATA_DIR=/tmp/localstack/data
-      - AWS_DEFAULT_REGION=us-east-1
-      - DOCKER_HOST=unix:///var/run/docker.sock
+      SERVICES: s3
+      DEFAULT_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
     volumes:
-      - localstack_data:/tmp/localstack
-      - /var/run/docker.sock:/var/run/docker.sock
-    healthcheck:
-      test: ["CMD", "awslocal", "s3", "ls"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  api:
-    build:
-      context: .
-      dockerfile: apps/api/Dockerfile
-    container_name: glyphhash-api
-    ports:
-      - "4000:4000"
-    environment:
-      - NODE_ENV=development
-      - DATABASE_URL=postgresql://spherelog:spherelog_pass@postgres:5432/spherelog?schema=public
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - AWS_ENDPOINT=http://localstack:4566
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      localstack:
-        condition: service_healthy
-    volumes:
-      - ./apps/api:/app/apps/api
-      - /app/node_modules
-      - /app/apps/api/node_modules
-    command: npm run start:dev
-
-  worker:
-    build:
-      context: .
-      dockerfile: apps/api/Dockerfile.worker
-    container_name: glyphhash-worker
-    environment:
-      - NODE_ENV=development
-      - DATABASE_URL=postgresql://spherelog:spherelog_pass@postgres:5432/spherelog?schema=public
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    volumes:
-      - ./apps/api:/app/apps/api
-      - /app/node_modules
-      - /app/apps/api/node_modules
-    command: npm run start:worker
-
-  web:
-    build:
-      context: .
-      dockerfile: apps/web/Dockerfile
-    container_name: glyphhash-web
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=http://localhost:4000
-    depends_on:
-      - api
-    volumes:
-      - ./apps/web:/app/apps/web
-      - /app/node_modules
-      - /app/apps/web/node_modules
-      - /app/apps/web/.next
-    command: npm run dev
+      - localstack_data:/var/lib/localstack
 
 volumes:
   postgres_data:

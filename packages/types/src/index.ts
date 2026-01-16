@@ -1,163 +1,262 @@
-export interface Tenant {
+/**
+ * GlyphHash Shared Types
+ * ======================
+ * Core type definitions shared across all services
+ */
+
+// ===========================================
+// Topic Types
+// ===========================================
+
+export interface Topic {
   id: string;
+  topicId: string; // Hedera topic ID (e.g., "0.0.123456")
   name: string;
-  slug: string;
-  clerkOrgId: string;
-  sphereId: string | null;
-  hcsTopicId: string | null;
-  status: TenantStatus;
+  description?: string;
+  ownerId: string;
+  companyIdentifier: string;
+  bindingHash: string; // Hash of companyId + topicId (first message)
+  bindingTimestamp?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export enum TenantStatus {
-  PENDING = 'PENDING',
-  ACTIVE = 'ACTIVE',
-  SUSPENDED = 'SUSPENDED',
-  DELETED = 'DELETED',
+export interface CreateTopicRequest {
+  name: string;
+  description?: string;
+  companyIdentifier: string;
 }
+
+export interface CreateTopicResponse {
+  topic: Topic;
+  transactionId: string;
+  consensusTimestamp?: string;
+}
+
+// ===========================================
+// Document Types
+// ===========================================
+
+export type DocumentCategory =
+  | 'SECURITY_MONITORING'
+  | 'ACCESS_CONTROL'
+  | 'INCIDENT_RESPONSE'
+  | 'CHANGE_MANAGEMENT'
+  | 'RISK_ASSESSMENT'
+  | 'COMPLIANCE_AUDIT'
+  | 'POLICY_DOCUMENT'
+  | 'EVIDENCE'
+  | 'OTHER';
+
+export type DocumentStatus =
+  | 'PENDING'      // Uploaded, not yet hashed
+  | 'SUBMITTED'    // Hash submitted to Hedera
+  | 'CONFIRMED'    // Consensus timestamp received
+  | 'FAILED';      // Submission failed
+
+export interface Document {
+  id: string;
+  topicId: string;
+  filename: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  category: DocumentCategory;
+  description?: string;
+  hash: string; // SHA-256 hash of file content
+  storagePath: string;
+  status: DocumentStatus;
+  sequenceNumber?: number;
+  consensusTimestamp?: Date;
+  transactionId?: string;
+  metadata?: Record<string, unknown>;
+  version: number;
+  previousVersionId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface UploadDocumentRequest {
+  topicId: string;
+  category: DocumentCategory;
+  description?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface UploadDocumentResponse {
+  document: Document;
+  transactionId: string;
+}
+
+// ===========================================
+// Hash Message Types (Hedera HCS)
+// ===========================================
+
+export type HashMessageType = 'TOPIC_BINDING' | 'DOCUMENT_HASH' | 'VERSION_LINK';
+
+export interface HashMessage {
+  type: HashMessageType;
+  version: string; // Schema version (e.g., "1.0")
+  timestamp: string; // ISO 8601
+  payload: TopicBindingPayload | DocumentHashPayload | VersionLinkPayload;
+}
+
+export interface TopicBindingPayload {
+  companyIdentifier: string;
+  topicId: string;
+  bindingHash: string;
+}
+
+export interface DocumentHashPayload {
+  documentId: string;
+  hash: string;
+  filenameHash: string; // SHA-256 hash of filename for privacy
+  category: DocumentCategory;
+  size: number;
+  mimeType: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface VersionLinkPayload {
+  documentId: string;
+  hash: string;
+  previousDocumentId: string;
+  previousHash: string;
+  version: number;
+}
+
+// ===========================================
+// Verification Types
+// ===========================================
+
+export type VerificationStatus = 'VERIFIED' | 'MISMATCH' | 'NOT_FOUND' | 'ERROR';
+
+export interface VerificationResult {
+  documentId: string;
+  filename: string;
+  status: VerificationStatus;
+  storedHash: string;
+  computedHash?: string;
+  hederaHash?: string;
+  consensusTimestamp?: Date;
+  sequenceNumber?: number;
+  details?: string;
+  verifiedAt: Date;
+}
+
+export interface VerificationReport {
+  id: string;
+  topicId: string;
+  totalDocuments: number;
+  verified: number;
+  mismatches: number;
+  notFound: number;
+  errors: number;
+  results: VerificationResult[];
+  generatedAt: Date;
+  generatedBy?: string;
+}
+
+export interface VerifyDocumentRequest {
+  documentId: string;
+}
+
+export interface VerifyBatchRequest {
+  topicId: string;
+  startDate?: string;
+  endDate?: string;
+  categories?: DocumentCategory[];
+}
+
+// ===========================================
+// Hedera Mirror Node Types
+// ===========================================
+
+export interface HederaMessage {
+  consensusTimestamp: string;
+  sequenceNumber: number;
+  message: string; // Base64 encoded
+  topicId: string;
+  transactionId?: string;
+}
+
+export interface MirrorNodeMessagesResponse {
+  messages: HederaMessage[];
+  links?: {
+    next?: string;
+  };
+}
+
+// ===========================================
+// API Response Types
+// ===========================================
+
+export interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: ApiError;
+  meta?: {
+    timestamp: string;
+    requestId?: string;
+  };
+}
+
+export interface ApiError {
+  code: string;
+  message: string;
+  details?: unknown;
+}
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
+}
+
+// ===========================================
+// Event Types (for real-time updates)
+// ===========================================
+
+export type EventType =
+  | 'TOPIC_CREATED'
+  | 'DOCUMENT_UPLOADED'
+  | 'HASH_SUBMITTED'
+  | 'HASH_CONFIRMED'
+  | 'VERIFICATION_COMPLETE';
+
+export interface GlyphHashEvent {
+  type: EventType;
+  timestamp: string;
+  payload: unknown;
+}
+
+// ===========================================
+// User Types (Future - Auth)
+// ===========================================
+
+export type UserRole = 'ADMIN' | 'USER' | 'AUDITOR';
 
 export interface User {
   id: string;
-  clerkUserId: string;
   email: string;
-  name: string | null;
+  name?: string;
   role: UserRole;
-  tenantId: string;
+  organizationId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export enum UserRole {
-  ADMIN = 'ADMIN',
-  MEMBER = 'MEMBER',
-  VIEWER = 'VIEWER',
-}
+// ===========================================
+// Utility Types
+// ===========================================
 
-export interface ComplianceLog {
-  id: string;
-  tenantId: string;
-  userId: string;
-  title: string;
-  description: string;
-  category: ComplianceCategory;
-  severity: ComplianceSeverity;
-  evidenceUrl: string | null;
-  evidenceHash: string | null;
-  encryptionMetadata: EncryptionMetadata | null;
-  hcsMessageId: string | null;
-  hcsSequenceNumber: string | null;
-  hcsConsensusTimestamp: string | null;
-  status: LogStatus;
-  metadata: Record<string, any>;
+export type DeepPartial<T> = {
+  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+};
+
+export type Timestamps = {
   createdAt: Date;
   updatedAt: Date;
-}
-
-export enum ComplianceCategory {
-  ACCESS_CONTROL = 'ACCESS_CONTROL',
-  DATA_PROTECTION = 'DATA_PROTECTION',
-  INCIDENT_RESPONSE = 'INCIDENT_RESPONSE',
-  CHANGE_MANAGEMENT = 'CHANGE_MANAGEMENT',
-  RISK_ASSESSMENT = 'RISK_ASSESSMENT',
-  SECURITY_MONITORING = 'SECURITY_MONITORING',
-  VENDOR_MANAGEMENT = 'VENDOR_MANAGEMENT',
-  POLICY_COMPLIANCE = 'POLICY_COMPLIANCE',
-}
-
-export enum ComplianceSeverity {
-  LOW = 'LOW',
-  MEDIUM = 'MEDIUM',
-  HIGH = 'HIGH',
-  CRITICAL = 'CRITICAL',
-}
-
-export enum LogStatus {
-  PENDING = 'PENDING',
-  PROCESSING = 'PROCESSING',
-  CONFIRMED = 'CONFIRMED',
-  FAILED = 'FAILED',
-}
-
-export interface EncryptionMetadata {
-  algorithm: string;
-  iv: string;
-  keyId: string;
-  encryptedAt: string;
-}
-
-export interface Payment {
-  id: string;
-  tenantId: string;
-  complianceLogId: string;
-  amount: string;
-  tokenId: string;
-  transactionId: string | null;
-  status: PaymentStatus;
-  metadata: Record<string, any>;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export enum PaymentStatus {
-  PENDING = 'PENDING',
-  PROCESSING = 'PROCESSING',
-  COMPLETED = 'COMPLETED',
-  FAILED = 'FAILED',
-}
-
-export interface HederaSphere {
-  id: string;
-  name: string;
-  description: string;
-  networkType: 'mainnet' | 'testnet' | 'private';
-  isPermissioned: boolean;
-  createdAt: Date;
-}
-
-export interface HCSMessage {
-  topicId: string;
-  message: string;
-  sequenceNumber: string;
-  consensusTimestamp: string;
-  runningHash: string;
-  contents: any;
-}
-
-// API Request/Response types
-export interface CreateTenantRequest {
-  name: string;
-  slug: string;
-  clerkOrgId: string;
-}
-
-export interface CreateComplianceLogRequest {
-  title: string;
-  description: string;
-  category: ComplianceCategory;
-  severity: ComplianceSeverity;
-  evidence?: File;
-  metadata?: Record<string, any>;
-}
-
-export interface CreateComplianceLogResponse {
-  log: ComplianceLog;
-  uploadUrl?: string;
-  encryptionKey?: string;
-}
-
-export interface DashboardStats {
-  totalLogs: number;
-  confirmedLogs: number;
-  pendingLogs: number;
-  totalPayments: string;
-  logsByCategory: Record<ComplianceCategory, number>;
-  recentLogs: ComplianceLog[];
-}
-
-export interface WebSocketEvent {
-  type: 'LOG_CREATED' | 'LOG_CONFIRMED' | 'PAYMENT_COMPLETED';
-  payload: any;
-  tenantId: string;
-  timestamp: string;
-}
+};

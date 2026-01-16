@@ -1,14 +1,23 @@
 {
   "name": "@glyphhash/types",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "private": true,
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
-    "clean": "rm -rf dist"
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "test": "echo 'No tests for types package'"
   },
   "devDependencies": {
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.0"
   }
 }

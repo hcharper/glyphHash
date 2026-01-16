@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,134 +10,128 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Tenant {
-  id           String   @id @default(uuid())
-  name         String
-  slug         String   @unique
-  clerkOrgId   String   @unique
-  sphereId     String?
-  hcsTopicId   String?
-  status       TenantStatus @default(PENDING)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+// ===========================================
+// Topics - Hedera HCS Topics
+// ===========================================
+model Topic {
+  id                String     @id @default(uuid())
+  topicId           String     @unique // Hedera topic ID (e.g., "0.0.123456")
+  name              String
+  description       String?
+  ownerId           String     // User ID (future auth integration)
+  companyIdentifier String
+  bindingHash       String     // Hash of companyId + topicId
+  bindingTimestamp  DateTime?
+  bindingTxId       String?    // Transaction ID of binding message
 
-  users        User[]
-  complianceLogs ComplianceLog[]
-  payments     Payment[]
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
 
-  @@map("tenants")
+  // Relations
+  documents         Document[]
+
+  @@index([ownerId])
+  @@index([companyIdentifier])
 }
 
-enum TenantStatus {
-  PENDING
-  ACTIVE
-  SUSPENDED
-  DELETED
-}
+// ===========================================
+// Documents - Uploaded files with hashes
+// ===========================================
+model Document {
+  id                String         @id @default(uuid())
+  topicId           String
+  topic             Topic          @relation(fields: [topicId], references: [id])
 
-model User {
-  id           String   @id @default(uuid())
-  clerkUserId  String   @unique
-  email        String
-  name         String?
-  role         UserRole @default(MEMBER)
-  tenantId     String
-  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  filename          String         // Storage filename (UUID-based)
+  originalName      String         // Original filename
+  mimeType          String
+  size              Int            // File size in bytes
+  
+  category          DocumentCategory
+  description       String?
+  hash              String         // SHA-256 hash of file content
+  storagePath       String         // Path in S3/local storage
+  
+  status            DocumentStatus @default(PENDING)
+  sequenceNumber    Int?           // HCS message sequence number
+  consensusTimestamp DateTime?     // Hedera consensus timestamp
+  transactionId     String?        // Hedera transaction ID
+  
+  metadata          Json?          // Additional metadata
+  
+  version           Int            @default(1)
+  previousVersionId String?        // Link to previous version
+  previousVersion   Document?      @relation("DocumentVersions", fields: [previousVersionId], references: [id])
+  nextVersions      Document[]     @relation("DocumentVersions")
+  
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
 
-  complianceLogs ComplianceLog[]
-
-  @@index([tenantId])
-  @@index([clerkUserId])
-  @@map("users")
-}
-
-enum UserRole {
-  ADMIN
-  MEMBER
-  VIEWER
-}
-
-model ComplianceLog {
-  id                    String   @id @default(uuid())
-  tenantId              String
-  tenant                Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  userId                String
-  user                  User     @relation(fields: [userId], references: [id])
-  title                 String
-  description           String   @db.Text
-  category              ComplianceCategory
-  severity              ComplianceSeverity
-  evidenceUrl           String?
-  evidenceHash          String?
-  encryptionMetadata    Json?
-  hcsMessageId          String?  @unique
-  hcsSequenceNumber     String?
-  hcsConsensusTimestamp String?
-  status                LogStatus @default(PENDING)
-  metadata              Json     @default("{}")
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-
-  payments              Payment[]
-
-  @@index([tenantId])
-  @@index([userId])
+  @@index([topicId])
+  @@index([hash])
   @@index([status])
   @@index([category])
-  @@index([hcsMessageId])
-  @@map("compliance_logs")
+  @@index([consensusTimestamp])
 }
 
-enum ComplianceCategory {
+// ===========================================
+// Verification Reports
+// ===========================================
+model VerificationReport {
+  id              String   @id @default(uuid())
+  topicId         String
+  totalDocuments  Int
+  verified        Int
+  mismatches      Int
+  notFound        Int
+  errors          Int
+  results         Json     // Array of VerificationResult
+  generatedBy     String?  // User ID
+  
+  createdAt       DateTime @default(now())
+
+  @@index([topicId])
+  @@index([createdAt])
+}
+
+// ===========================================
+// Audit Log (for compliance)
+// ===========================================
+model AuditLog {
+  id          String   @id @default(uuid())
+  action      String   // CREATE_TOPIC, UPLOAD_DOCUMENT, VERIFY_DOCUMENT, etc.
+  entityType  String   // Topic, Document, etc.
+  entityId    String
+  userId      String?
+  ipAddress   String?
+  userAgent   String?
+  details     Json?
+  
+  createdAt   DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// ===========================================
+// Enums
+// ===========================================
+enum DocumentCategory {
+  SECURITY_MONITORING
   ACCESS_CONTROL
-  DATA_PROTECTION
   INCIDENT_RESPONSE
   CHANGE_MANAGEMENT
   RISK_ASSESSMENT
-  SECURITY_MONITORING
-  VENDOR_MANAGEMENT
-  POLICY_COMPLIANCE
+  COMPLIANCE_AUDIT
+  POLICY_DOCUMENT
+  EVIDENCE
+  OTHER
 }
 
-enum ComplianceSeverity {
-  LOW
-  MEDIUM
-  HIGH
-  CRITICAL
-}
-
-enum LogStatus {
+enum DocumentStatus {
   PENDING
-  PROCESSING
+  SUBMITTED
   CONFIRMED
-  FAILED
-}
-
-model Payment {
-  id               String   @id @default(uuid())
-  tenantId         String
-  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  complianceLogId  String
-  complianceLog    ComplianceLog @relation(fields: [complianceLogId], references: [id])
-  amount           String
-  tokenId          String
-  transactionId    String?
-  status           PaymentStatus @default(PENDING)
-  metadata         Json     @default("{}")
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-  @@index([tenantId])
-  @@index([complianceLogId])
-  @@index([status])
-  @@map("payments")
-}
-
-enum PaymentStatus {
-  PENDING
-  PROCESSING
-  COMPLETED
   FAILED
 }

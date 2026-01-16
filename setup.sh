@@ -1,110 +1,84 @@
 #!/bin/bash
 
-# glyphHash Setup Script
-# This script sets up the complete development environment
+# GlyphHash Setup Script
+# ======================
+# This script sets up the development environment
 
-set -e  # Exit on any error
+set -e
 
-echo "🚀 glyphHash Setup Script"
-echo "========================="
+echo "╔═══════════════════════════════════════════════════════════════╗"
+echo "║                                                               ║"
+echo "║   🔐 GlyphHash Setup                                          ║"
+echo "║   Blockchain-Verified Compliance Auditing                     ║"
+echo "║                                                               ║"
+echo "╚═══════════════════════════════════════════════════════════════╝"
 echo ""
 
-# Check prerequisites
+# Check Node.js version
 echo "📋 Checking prerequisites..."
-
-# Check Node.js
-if ! command -v node &> /dev/null; then
-    echo "❌ Node.js is not installed. Please install Node.js >= 20.0.0"
-    exit 1
-fi
-
 NODE_VERSION=$(node -v | cut -d'v' -f2 | cut -d'.' -f1)
 if [ "$NODE_VERSION" -lt 20 ]; then
-    echo "❌ Node.js version must be >= 20.0.0 (current: $(node -v))"
-    exit 1
+  echo "❌ Node.js 20+ is required. Current: $(node -v)"
+  exit 1
 fi
 echo "✅ Node.js $(node -v)"
 
 # Check Docker
 if ! command -v docker &> /dev/null; then
-    echo "❌ Docker is not installed. Please install Docker"
-    exit 1
+  echo "⚠️  Docker not found. Install Docker to run the database."
+else
+  echo "✅ Docker $(docker -v | cut -d' ' -f3 | tr -d ',')"
 fi
-echo "✅ Docker $(docker --version)"
 
-# Check Docker Compose
-if ! command -v docker-compose &> /dev/null; then
-    echo "❌ Docker Compose is not installed. Please install Docker Compose"
-    exit 1
-fi
-echo "✅ Docker Compose $(docker-compose --version)"
-
+# Install dependencies
 echo ""
 echo "📦 Installing dependencies..."
 npm install
 
+# Build packages
 echo ""
-echo "🔧 Setting up environment files..."
+echo "🔨 Building packages..."
+npm run build --workspace=@glyphhash/types
+npm run build --workspace=@glyphhash/hedera
 
-# Create .env if it doesn't exist
+# Check for .env file
 if [ ! -f .env ]; then
-    echo "Creating .env from .env.example..."
-    cp .env.example .env
-    echo "⚠️  Please edit .env with your Hedera credentials!"
-else
-    echo "✅ .env already exists"
+  echo ""
+  echo "📝 Creating .env from example..."
+  cp .env.example .env
+  echo ""
+  echo "⚠️  IMPORTANT: Edit .env with your Hedera testnet credentials!"
+  echo "   Get credentials at: https://portal.hedera.com"
 fi
 
-# Create web .env.local if it doesn't exist
-if [ ! -f apps/web/.env.local ]; then
-    echo "Creating apps/web/.env.local from example..."
-    cp apps/web/.env.local.example apps/web/.env.local
-    echo "⚠️  Please edit apps/web/.env.local with your Clerk credentials!"
-else
-    echo "✅ apps/web/.env.local already exists"
+# Start Docker services
+if command -v docker &> /dev/null; then
+  echo ""
+  echo "🐳 Starting Docker services..."
+  docker-compose up -d postgres
+  
+  # Wait for PostgreSQL to be ready
+  echo "⏳ Waiting for PostgreSQL..."
+  sleep 5
 fi
 
+# Run Prisma migrations
 echo ""
-echo "🐳 Starting Docker services..."
-docker-compose up -d
-
-echo ""
-echo "⏳ Waiting for PostgreSQL to be ready..."
-sleep 5
-
-# Check if PostgreSQL is ready
-until docker exec glyphhash-postgres pg_isready -U glyphhash > /dev/null 2>&1; do
-    echo "Waiting for PostgreSQL..."
-    sleep 2
-done
-echo "✅ PostgreSQL is ready"
-
-echo ""
-echo "📊 Setting up database..."
+echo "🗄️  Running database migrations..."
 cd apps/api
-
-# Generate Prisma Client
-echo "Generating Prisma Client..."
 npx prisma generate
-
-# Run migrations
-echo "Running database migrations..."
-npx prisma migrate dev --name init
-
+npx prisma db push
 cd ../..
 
 echo ""
-echo "✅ Setup complete!"
-echo ""
-echo "📝 Next steps:"
-echo "1. Edit .env with your Hedera testnet credentials"
-echo "2. Edit apps/web/.env.local with your Clerk API keys"
-echo "3. Run 'npm run dev' to start all services"
-echo ""
-echo "🌐 Services will be available at:"
-echo "   - API: http://localhost:4000"
-echo "   - API Docs: http://localhost:4000/api/docs"
-echo "   - Web: http://localhost:3000"
-echo "   - Prisma Studio: npm run db:studio"
-echo ""
-echo "Happy coding! 🎉"
+echo "╔═══════════════════════════════════════════════════════════════╗"
+echo "║                                                               ║"
+echo "║   ✅ Setup Complete!                                          ║"
+echo "║                                                               ║"
+echo "║   Next steps:                                                 ║"
+echo "║   1. Edit .env with your Hedera testnet credentials          ║"
+echo "║   2. Run: npm run dev                                        ║"
+echo "║   3. Open: http://localhost:3000                             ║"
+echo "║   4. Try the demo: http://localhost:3000/demo                ║"
+echo "║                                                               ║"
+echo "╚═══════════════════════════════════════════════════════════════╝"
