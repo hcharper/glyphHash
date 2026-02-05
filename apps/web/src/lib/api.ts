@@ -3,7 +3,8 @@
  * ========================
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+// Use relative URL for serverless API routes (same domain)
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
 interface ApiResponse<T> {
   success: boolean;
