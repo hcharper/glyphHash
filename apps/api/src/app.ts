@@ -21,7 +21,7 @@ export function createApp(): Application {
   // Security middleware
   app.use(helmet());
   app.use(cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: process.env.CORS_ORIGIN || ['http://localhost:3000', 'http://localhost:3002'],
     credentials: true,
   }));
 

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { useEffect } from 'react';
 import { 
   Home, 
   FileText, 
@@ -19,6 +20,12 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem('demoLoggedIn');
+    if (!isLoggedIn) {
+      window.location.href = '/sign-in';
+    }
+  }, []);
   const pathname = usePathname();
 
   return (

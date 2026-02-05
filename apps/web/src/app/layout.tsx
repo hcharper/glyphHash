@@ -9,7 +9,9 @@ export const metadata: Metadata = {
   title: 'GlyphHash - Blockchain-Verified Compliance Auditing',
   description: 'Immutable audit trails on Hedera for SOC 2, ISO 27001, and HIPAA compliance',
   icons: {
-    icon: '/favicon.ico',
+    icon: '/favicon.png',
+    apple: '/favicon.png',
+    shortcut: '/favicon.png',
   },
 };
 

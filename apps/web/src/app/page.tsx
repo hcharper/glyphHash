@@ -1,9 +1,14 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
-import { Shield, FileCheck, Users, ArrowRight, Globe, Lock } from 'lucide-react';
+import { useState } from 'react';
+import { Shield, FileCheck, Users, ArrowRight, Globe, Lock, X } from 'lucide-react';
 
 export default function HomePage() {
+  const [showModal, setShowModal] = useState(false);
   return (
+    <>
     <div className="min-h-screen bg-carbon-950">
       {/* Header */}
       <header className="border-b border-carbon-800 bg-carbon-900/80 backdrop-blur-sm sticky top-0 z-50">
@@ -26,12 +31,12 @@ export default function HomePage() {
             >
               Sign In
             </Link>
-            <Link 
-              href="/dashboard"
+            <button
+              onClick={() => setShowModal(true)}
               className="px-4 py-2 bg-crimson-600 hover:bg-crimson-700 text-white rounded-lg font-medium transition"
             >
               Dashboard
-            </Link>
+            </button>
           </div>
         </nav>
       </header>
@@ -163,6 +168,52 @@ export default function HomePage() {
         </div>
       </footer>
     </div>
+
+    {/* Disclaimer Modal */}
+    {showModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-carbon-900 p-6 rounded-lg max-w-md w-full mx-4 border border-carbon-700">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-carbon-100">Demo Disclaimer</h3>
+            <button
+              onClick={() => setShowModal(false)}
+              className="text-carbon-400 hover:text-carbon-100"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="text-carbon-300 mb-6">
+            <p className="mb-3">
+              This is a <strong>demo environment</strong> using Hedera testnet. All users share the same Hedera account for testing purposes.
+            </p>
+            <p className="mb-3">
+              <strong>Important:</strong> Do not use real funds or sensitive data. Operations are visible to all demo users.
+            </p>
+            <p>
+              By proceeding, you acknowledge this is for demonstration only and understand the shared nature of the testnet account.
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowModal(false)}
+              className="flex-1 px-4 py-2 border border-carbon-600 text-carbon-300 rounded-lg hover:bg-carbon-800 transition"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                setShowModal(false);
+                window.location.href = '/dashboard';
+              }}
+              className="flex-1 px-4 py-2 bg-crimson-600 hover:bg-crimson-700 text-white rounded-lg transition"
+            >
+              I Understand
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }
 

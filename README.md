@@ -20,6 +20,18 @@ This is a **minimum viable product** demonstrating the core GlyphHash workflow:
 
 **Currently running on Hedera Testnet** - not for production use.
 
+## 🎨 Portfolio Project
+
+This project showcases modern full-stack development with:
+- **Next.js 14** with App Router and TypeScript
+- **Hedera Consensus Service (HCS)** for immutable audit trails
+- **Microservices architecture** with API Gateway pattern
+- **PostgreSQL** with Prisma ORM
+- **Tailwind CSS** with custom design system
+- **Turbo** for monorepo management
+
+See the [development roadmap](docs/ROADMAP.md) for planned features including authentication and production deployment.
+
 ## 🎯 Value Proposition
 
 **The Problem:** SOC 2 audits cost $50,000+, with 65+ hours spent verifying evidence timestamps.
@@ -76,7 +88,7 @@ glyphHash/
 └── README.md
 ```
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Demo)
 
 ### Prerequisites
 
@@ -84,7 +96,9 @@ glyphHash/
 - **Docker** & **Docker Compose** (for PostgreSQL)
 - **Hedera Testnet Account**: [Get one here](https://portal.hedera.com)
 
-### Installation
+### Demo Setup
+
+This is a **demo environment** using shared Hedera testnet credentials. All users operate on the same account.
 
 ```bash
 # Clone the repository
