@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Home, 
   FileText, 
@@ -13,6 +13,7 @@ import {
   Search,
   Hash,
   Upload,
+  X,
 } from 'lucide-react';
 
 export default function DashboardLayout({
@@ -20,13 +21,20 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
+  const pathname = usePathname();
+
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem('demoLoggedIn');
-    if (!isLoggedIn) {
-      window.location.href = '/sign-in';
+    const disclaimerDismissed = localStorage.getItem('disclaimerDismissed');
+    if (!disclaimerDismissed) {
+      setShowDisclaimer(true);
     }
   }, []);
-  const pathname = usePathname();
+
+  const dismissDisclaimer = () => {
+    localStorage.setItem('disclaimerDismissed', 'true');
+    setShowDisclaimer(false);
+  };
 
   return (
     <div className="min-h-screen bg-carbon-950 flex">
@@ -142,6 +150,40 @@ export default function DashboardLayout({
           {children}
         </main>
       </div>
+
+      {/* Disclaimer Modal */}
+      {showDisclaimer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-carbon-900 p-6 rounded-lg max-w-md w-full mx-4 border border-carbon-700">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-carbon-100">Demo Disclaimer</h3>
+              <button
+                onClick={dismissDisclaimer}
+                className="text-carbon-400 hover:text-carbon-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="text-carbon-300 mb-6">
+              <p className="mb-3">
+                This is a <strong>demo environment</strong> using Hedera testnet. All users share the same Hedera account for testing purposes.
+              </p>
+              <p className="mb-3">
+                <strong>Important:</strong> Do not use real funds or sensitive data. Operations are visible to all demo users.
+              </p>
+              <p>
+                By proceeding, you acknowledge this is for demonstration only and understand the shared nature of the testnet account.
+              </p>
+            </div>
+            <button
+              onClick={dismissDisclaimer}
+              className="w-full px-4 py-2 bg-crimson-600 hover:bg-crimson-700 text-white rounded-lg transition font-medium"
+            >
+              I Understand, Continue to Demo
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
