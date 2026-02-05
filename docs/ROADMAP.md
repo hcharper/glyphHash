@@ -26,12 +26,16 @@ Transform compliance auditing from a costly, manual process into an automated, b
 - [x] Dashboard skeleton
 - [x] PostgreSQL + Prisma schema
 - [x] Comprehensive test coverage
+- [x] Demo deployment on Vercel (shared testnet account)
+- [x] Disclaimer modal for demo usage
 
 ### Demo Capabilities
 1. Create Hedera topic (visible on HashScan)
 2. Upload document → compute hash → submit to HCS
 3. Verify document against blockchain record
 4. Show transaction proof on testnet
+
+**Current Status:** Deployed as public demo at [vercel-url] with shared Hedera testnet credentials.
 
 ---
 
