@@ -35,7 +35,7 @@ export default function HomePage() {
         <div className="text-center max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-900/30 text-violet-300 text-sm font-medium mb-6 border border-violet-800/50">
             <Globe className="w-4 h-4" />
-            Powered by Hedera Blockchain
+            Powered by Hedera Hashgraph
           </div>
           
           <h1 className="font-display text-5xl sm:text-6xl font-bold text-carbon-100 leading-tight mb-6">
